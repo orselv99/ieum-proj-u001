@@ -32,9 +32,12 @@ async function handleGeminiChat(prompt: string) {
     const personaPrompt = await storage.get("persona-prompt") as string
     const systemInstruction = personaPrompt || "You are a cute, slightly cynical but ultimately loving virtual cat. You speak Korean and always end your sentences with '냥' (nyang). Kepp it short."
 
+    const aiModel = await storage.get("ai-model") as string
+    const targetModel = aiModel || "gemini-1.5-flash"
+
     const genAI = new GoogleGenerativeAI(apiKey)
     const model = genAI.getGenerativeModel({
-      model: "gemini-1.5-flash",
+      model: targetModel,
       systemInstruction: systemInstruction,
     })
 

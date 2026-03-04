@@ -1,8 +1,8 @@
 {
-  "name": "pixel-ai",
-  "displayName": "Pixel ai",
+  "name": "pixel-cat",
+  "displayName": "Pixel Cat",
   "version": "0.0.1",
-  "description": "A basic Plasmo extension.",
+  "description": "Virtual pet that lives in your browser.",
   "author": "Plasmo Corp. <foss@plasmo.com>",
   "scripts": {
     "dev": "plasmo dev",
@@ -14,6 +14,7 @@
     "@plasmohq/storage": "^1.15.0",
     "image-size": "^2.0.2",
     "lodash.throttle": "^4.1.1",
+    "lucide-react": "^0.576.0",
     "plasmo": "0.90.5",
     "react": "18.2.0",
     "react-dom": "18.2.0"

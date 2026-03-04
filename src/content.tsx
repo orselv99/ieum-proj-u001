@@ -1,6 +1,6 @@
 import cssText from "data-text:~/style.css"
 import type { PlasmoCSConfig } from "plasmo"
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useRef, useState, useMemo } from "react"
 import { useStorage } from "@plasmohq/storage/hook"
 import throttle from "lodash.throttle"
 import { Physics } from "./engine/Physics"
@@ -92,8 +92,29 @@ const PixelPetContent = () => {
   const [audioMessages] = useStorage<string[]>("default-messages-audio", ["노래 좋다냥~ 🎵", "나도 춤을 출까냥? 😸"])
   const [positiveKeywords] = useStorage<string[]>("positive-keywords", ["츄르", "생선", "세일", "무료"])
   const [negativeKeywords] = useStorage<string[]>("negative-keywords", ["오이", "개", "Dog", "병원", "버그"])
+  const [denylistedUrls] = useStorage<string[]>("denylisted-urls", ["github.com"])
+  const [quietlistedUrls] = useStorage<string[]>("quietlisted-urls", ["youtube.com"])
+  const [petBreed] = useStorage<any>("pet-breed", "mackerel")
+
+  useEffect(() => {
+    if (engineRef.current && petBreed) {
+      engineRef.current.animator.setBreed(petBreed)
+    }
+  }, [petBreed])
 
   const keywordCooldown = useRef<{ [key: string]: number }>({})
+
+  // Phase 8: Check if current page is excluded entirely
+  const isExcluded = useMemo(() => {
+    const url = window.location.href;
+    return (denylistedUrls || []).some(denyUrl => url.includes(denyUrl));
+  }, [denylistedUrls]);
+
+  // Phase 8: Check if current page is in quiet mode
+  const isQuietMode = useMemo(() => {
+    const url = window.location.href;
+    return (quietlistedUrls || []).some(quietUrl => url.includes(quietUrl));
+  }, [quietlistedUrls]);
 
   useEffect(() => {
     if (awarenessType === "video") {
@@ -265,9 +286,9 @@ const PixelPetContent = () => {
       reqId: 0
     }
 
-    // Phase 4: Mouse Tracking
+    // Phase 4 & Phase 8 Update: Mouse Tracking & Evasion
     const handleMouseMove = throttle((e: MouseEvent) => {
-      if (!engineRef.current) return
+      if (!engineRef.current || isQuietMode) return
 
       const { physics, stateMachine } = engineRef.current
       const catCenterX = physics.x + (physics.width / 2)
@@ -372,7 +393,7 @@ const PixelPetContent = () => {
       const visualElement = catRef.current.querySelector('.cat-visual') as HTMLDivElement
       if (visualElement) {
         visualElement.style.transform = `scaleX(${scaleX})`
-        visualElement.style.backgroundImage = `url(${animator.currentState.spriteUrl})`
+        visualElement.style.backgroundImage = `url(${animator.spriteUrl})`
         visualElement.style.backgroundPosition = animator.getBackgroundPosition()
       }
 
@@ -394,8 +415,10 @@ const PixelPetContent = () => {
     }
   }, [])
 
+  if (isExcluded) return null;
+
   return (
-    <div className="fixed top-0 left-0 z-[9999] pointer-events-none w-full h-full">
+    <div className="plasmo-z-[2147483647] fixed top-0 left-0 z-[9999] pointer-events-none w-full h-full">
       <div
         ref={catRef}
         id="pixel-pet"
